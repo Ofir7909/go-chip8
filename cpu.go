@@ -320,7 +320,9 @@ func (cpu *Cpu) step() {
 	if incrementPC {
 		cpu.programCounter += 2
 	}
+}
 
+func (cpu *Cpu) timersTick() {
 	if cpu.delayTimer > 0 {
 		cpu.delayTimer -= 1
 	}

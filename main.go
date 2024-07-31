@@ -10,8 +10,8 @@ import (
 
 const (
 	windowTitle  = "Go Chip-8!"
-	windowWidth  = 512
-	windowHeight = 256
+	windowWidth  = 64 * 16
+	windowHeight = 32 * 16
 )
 
 var onColor = [4]byte{0xFF, 0xFF, 0xFF, 0xFF}
@@ -53,6 +53,7 @@ func main() {
 	cpu.reset()
 	loadRom(&cpu, os.Args[1])
 
+	var clocksUntilTimersTick uint16 = 9
 	quit := false
 	for !quit {
 		for e := sdl.PollEvent(); e != nil; e = sdl.PollEvent() {
@@ -69,14 +70,18 @@ func main() {
 						}
 					}
 				}
-
 			}
 		}
 
 		cpu.step()
 
 		render(&cpu, &context)
-		time.Sleep(16 * time.Millisecond)
+		time.Sleep(time.Second / 540)
+		clocksUntilTimersTick--
+		if clocksUntilTimersTick <= 0 {
+			clocksUntilTimersTick = 9
+			cpu.timersTick()
+		}
 	}
 
 	shutdown(&context)
