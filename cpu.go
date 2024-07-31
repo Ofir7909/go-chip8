@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"math/rand/v2"
 )
 
@@ -58,6 +59,7 @@ func (cpu *Cpu) reset() {
 
 func (cpu *Cpu) step() {
 	operation := uint16(cpu.memory[cpu.programCounter])<<8 | uint16(cpu.memory[cpu.programCounter+1])
+	log.Printf("%x\n", operation)
 
 	firstNibble := operation >> 12 & 0xF
 	incrementPC := true
@@ -232,7 +234,7 @@ func (cpu *Cpu) step() {
 					wrappedX := (posX + p) % screenWidth
 					wrappedY := (posY + r) % screenHeight
 
-					pixelOffset := uint16(wrappedY)*uint16(windowWidth) + uint16(wrappedX)
+					pixelOffset := uint16(wrappedY)*uint16(screenWidth) + uint16(wrappedX)
 					if cpu.graphics[pixelOffset] != 0 {
 						cpu.registers[0xF] = 1
 					}
@@ -304,12 +306,12 @@ func (cpu *Cpu) step() {
 			cpu.memory[cpu.index+2] = (valX % 10)
 		case 0x55:
 			// LD [I], Vx
-			for i, v := range cpu.registers {
+			for i, v := range cpu.registers[:x+1] {
 				cpu.memory[cpu.index+uint16(i)] = v
 			}
 		case 0x65:
 			// LD Vx, [I]
-			for i := range len(cpu.registers) {
+			for i := range x + 1 {
 				cpu.registers[i] = cpu.memory[cpu.index+uint16(i)]
 			}
 		}
@@ -317,5 +319,12 @@ func (cpu *Cpu) step() {
 
 	if incrementPC {
 		cpu.programCounter += 2
+	}
+
+	if cpu.delayTimer > 0 {
+		cpu.delayTimer -= 1
+	}
+	if cpu.soundTimer > 0 {
+		cpu.soundTimer -= 1
 	}
 }
